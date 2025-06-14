@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Гра: Вгадай ім'я</title>
+  <!-- Ядро Brython -->
+  <script src="https://cdn.jsdelivr.net/npm/brython@3.10.5/brython.min.js"></script>
+  <!-- Стандартные модули Brython (включая random) -->
+  <script src="https://cdn.jsdelivr.net/npm/brython@3.10.5/brython_stdlib.js"></script>
+</head>
+<body onload="brython()">
+  <h2>🎯 Вгадай ім'я найкрасивішої дівчини!</h2>
+  <div id="game-area">
+    <p id="options"></p>
+    <p id="message">У тебе є 3 спроби 😉</p>
+    <input type="text" id="guess-input" placeholder="Введи ім'я..." />
+    <button id="submit-btn">Відправити</button>
+    <button id="restart-btn" style="display:none;">Спробувати ще</button>
+  </div>
+
+  <script type="text/python">
+    from browser import document
+    import random
+
+    def init_game():
+        global secret_name, attempts, options
+        secret_name = "Катя"
+        all_names = ["Катя", "Софія", "Оля", "Марія", "Аня", "Настя", "Віка"]
+        praises = [
+            "👑 Катя — королева стилю!",
+            "💖 Катя — серце цього світу!",
+            "✨ Катя сяє яскравіше за сонце!",
+            "🌸 Катя — втілення ніжності!",
+            "🔥 Катя — справжній вогонь!",
+            "🎶 Катя — музика моєї душі!",
+        ]
+        attempts = 3
+        options = [secret_name]
+        while len(options) < 4:
+            name = random.choice(all_names)
+            if name != secret_name and name not in options:
+                options.append(name)
+        random.shuffle(options)
+        document["options"].text = " | ".join(options)
+        document["message"].text = "У тебе є 3 спроби 😉"
+        document["guess-input"].value = ""
+        document["guess-input"].disabled = False
+        document["submit-btn"].disabled = False
+        document["restart-btn"].style.display = "none"
+
+    praises = [
+        "👑 Катя — королева стилю!",
+        "💖 Катя — серце цього світу!",
+        "✨ Катя сяє яскравіше за сонце!",
+        "🌸 Катя — втілення ніжності!",
+        "🔥 Катя — справжній вогонь!",
+        "🎶 Катя — музика моєї душі!",
+    ]
+
+    def guess(event=None):
+        global attempts
+        user_input = document["guess-input"].value.strip()
+        if not user_input or attempts == 0:
+            return
+
+        if user_input.lower() == secret_name.lower():
+            praise = random.choice(praises)
+            document["message"].text = f"🔥 Вірно! {praise}"
+            end_game()
+        else:
+            attempts -= 1
+            if attempts > 0:
+                hint = f"🔎 Підказка: Ім'я починається на '{secret_name[0]}'"
+                document["message"].text = f"🙈 Ні, спробуй ще. {hint} | Залишилось спроб: {attempts}"
+            else:
+                document["message"].text = f"😢 Спроби закінчилися. Правильна відповідь — {secret_name}."
+                end_game()
+
+    def end_game():
+        document["guess-input"].disabled = True
+        document["submit-btn"].disabled = True
+        document["restart-btn"].style.display = "inline"
+
+    document["submit-btn"].bind("click", guess)
+    document["guess-input"].bind("keydown", lambda ev: guess() if ev.key == "Enter" else None)
+    document["restart-btn"].bind("click", lambda ev: init_game())
+
+    init_game()
+  </script>
+</body>
+</html>
